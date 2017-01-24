@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="Button">
+        <attr name="backgroundColor" format="color"/>
+        <attr name="backgroundType" format="enum">
+            <enum name="solid" value="0"/>
+            <enum name="outline" value="1"/>
+        </attr>
+    </declare-styleable>
+
+</resources>
