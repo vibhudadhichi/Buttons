@@ -1,28 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:gravity="center_horizontal"
-    android:orientation="vertical">
+    android:paddingTop="@dimen/activity_vertical_margin">
 
     <james.buttons.Button
-        android:id="@+id/solid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hi"
-        app:backgroundColor="@color/colorAccent"/>
+        android:text="@string/hi"
+        app:backgroundColor="@color/colorPrimary" />
 
     <james.buttons.Button
-        android:id="@+id/outline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hi"
-        app:backgroundColor="@color/colorPrimaryDark"
-        app:backgroundType="outline"/>
+        android:text="@string/hi"
+        app:backgroundColor="@color/colorPrimary"
+        app:backgroundType="outline" />
+
+    <james.buttons.Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hi"
+        app:backgroundColor="@color/colorPrimary"
+        app:backgroundType="round" />
+
+    <james.buttons.Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hi"
+        app:backgroundColor="@color/colorPrimary"
+        app:backgroundType="roundOutline" />
 
 </LinearLayout>

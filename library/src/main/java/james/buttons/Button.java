@@ -1,16 +1,8 @@
 package james.buttons;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.DrawableContainer;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.InsetDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -53,6 +45,12 @@ public class Button extends AppCompatButton {
                 case 1:
                     type = Type.OUTLINE;
                     break;
+                case 2:
+                    type = Type.ROUND;
+                    break;
+                case 3:
+                    type = Type.ROUND_OUTLINE;
+                    break;
             }
 
             color = array.getColor(R.styleable.Button_backgroundColor, Color.BLACK);
@@ -79,6 +77,12 @@ public class Button extends AppCompatButton {
             case OUTLINE:
                 setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button_outline)));
                 break;
+            case ROUND:
+                setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button_round)));
+                break;
+            case ROUND_OUTLINE:
+                setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button_outline_round)));
+                break;
         }
 
         if (autoTextContrast)
@@ -98,9 +102,11 @@ public class Button extends AppCompatButton {
         if (autoTextContrast) {
             switch (type) {
                 case SOLID:
+                case ROUND:
                     setTextColor(ColorUtils.isColorDark(color) ? Color.WHITE : Color.BLACK);
                     break;
                 case OUTLINE:
+                case ROUND_OUTLINE:
                     setTextColor(color);
                     break;
             }
@@ -109,6 +115,8 @@ public class Button extends AppCompatButton {
 
     public enum Type {
         SOLID,
-        OUTLINE
+        OUTLINE,
+        ROUND,
+        ROUND_OUTLINE
     }
 }
