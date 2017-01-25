@@ -11,12 +11,14 @@
     android:paddingTop="@dimen/activity_vertical_margin">
 
     <james.buttons.Button
+        android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
         app:backgroundColor="@color/colorPrimary" />
 
     <james.buttons.Button
+        android:id="@+id/outlineButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
@@ -24,6 +26,7 @@
         app:backgroundType="outline" />
 
     <james.buttons.Button
+        android:id="@+id/roundButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
@@ -31,6 +34,7 @@
         app:backgroundType="round" />
 
     <james.buttons.Button
+        android:id="@+id/roundOutlineButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
