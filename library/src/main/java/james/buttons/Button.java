@@ -1,23 +1,34 @@
 package james.buttons;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 import james.buttons.utils.ColorUtils;
 
-public class Button extends AppCompatButton {
+public class Button extends AppCompatButton implements View.OnTouchListener {
 
     @ColorInt
     private int color;
+    private float progress;
 
     private Type type;
+    private Paint paint;
+    private ValueAnimator rippleAnimator;
 
     public Button(Context context) {
         super(context);
@@ -59,8 +70,15 @@ public class Button extends AppCompatButton {
             color = Color.BLACK;
         }
 
+        paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setAntiAlias(true);
+        paint.setAlpha(150);
+
         setBackgroundColor(color);
         setBackgroundType(type);
+
+        setOnTouchListener(this);
     }
 
     public void setBackgroundType(Type type) {
@@ -111,6 +129,83 @@ public class Button extends AppCompatButton {
                     break;
             }
         }
+    }
+
+    @Override
+    public void setTextColor(int color) {
+        super.setTextColor(color);
+        if (rippleAnimator == null || !rippleAnimator.isRunning())
+            paint.setColor(color);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawCircle(canvas.getWidth() / 2, canvas.getHeight() / 2, progress * (canvas.getWidth() / 1.5f), paint);
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (rippleAnimator != null)
+                    rippleAnimator.cancel();
+
+                rippleAnimator = ValueAnimator.ofFloat(0, 1);
+                rippleAnimator.setDuration(2500);
+                rippleAnimator.setInterpolator(new DecelerateInterpolator());
+                rippleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        progress = (float) animation.getAnimatedValue();
+                        paint.setAlpha(150);
+                        invalidate();
+                    }
+                });
+                rippleAnimator.start();
+                break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                if (rippleAnimator != null)
+                    rippleAnimator.cancel();
+
+                rippleAnimator = ValueAnimator.ofFloat(progress, 1);
+                rippleAnimator.setDuration(350);
+                rippleAnimator.setInterpolator(new AccelerateInterpolator());
+                rippleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        progress = (float) animation.getAnimatedValue();
+                        paint.setAlpha((int) (150 * (1 - animation.getAnimatedFraction())));
+                        invalidate();
+                    }
+                });
+                rippleAnimator.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        progress = 0;
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animation) {
+
+                    }
+                });
+                rippleAnimator.start();
+
+                break;
+        }
+        return false;
     }
 
     public enum Type {
