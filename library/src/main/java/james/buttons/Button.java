@@ -14,15 +14,12 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-
-import java.util.Map;
 
 import james.buttons.utils.ColorUtils;
 
@@ -37,7 +34,6 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     private ValueAnimator rippleAnimator;
 
     private Drawable rippleDrawable;
-    private Map<Position, Bitmap> ripples;
     private int rippleX, rippleY;
     private boolean isRippleEnabled = true;
 
@@ -57,8 +53,6 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     }
 
     private void init(@Nullable AttributeSet attrs) {
-        ripples = new ArrayMap<>();
-
         if (attrs != null) {
             TypedArray array = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.Button, 0, 0);
 
@@ -123,11 +117,10 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
 
         Drawable drawable = DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), resource));
         if (rippleResource != null)
-            rippleDrawable = ContextCompat.getDrawable(getContext(), rippleResource);
-        else rippleDrawable = drawable;
+            rippleDrawable = DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), rippleResource));
+        else rippleDrawable = null;
 
         setBackgroundDrawable(drawable);
-        ripples.clear();
 
         if (autoTextContrast)
             setBackgroundColor(color);
@@ -162,7 +155,6 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         super.setTextColor(color);
         if (rippleAnimator == null || !rippleAnimator.isRunning()) {
             paint.setColor(color);
-            ripples.clear();
         }
     }
 
@@ -184,35 +176,29 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
 
     @Nullable
     private Bitmap getRipple() {
-        Position position = new Position(progress, rippleX, rippleY);
+        if (getBackground() == null || getWidth() < 1 || getHeight() < 1)
+            return null;
 
-        if (ripples.containsKey(position))
-            return ripples.get(position);
-        else {
-            if (rippleDrawable == null || getWidth() < 1 || getHeight() < 1)
-                return null;
-
-            Bitmap bitmap;
-            try {
-                bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-            } catch (OutOfMemoryError e) {
-                return null;
-            }
-
-            Canvas canvas = new Canvas(bitmap);
-
-            Paint paint = new Paint();
-            paint.setAntiAlias(true);
-            paint.setColor(this.paint.getColor());
-            paint.setAlpha(255);
-
-            rippleDrawable.draw(canvas);
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
-            canvas.drawCircle(rippleX, rippleY, progress * (getWidth() / 1.5f), paint);
-
-            //TODO: add back 'ripples.put(position, bitmap);' once OOMs are fixed
-            return bitmap;
+        Bitmap bitmap;
+        try {
+            bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        } catch (OutOfMemoryError e) {
+            return null;
         }
+
+        Canvas canvas = new Canvas(bitmap);
+
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setColor(this.paint.getColor());
+        paint.setAlpha(255);
+
+        if (rippleDrawable != null) rippleDrawable.draw(canvas);
+        else getBackground().draw(canvas);
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
+        canvas.drawCircle(rippleX, rippleY, progress * (getWidth() / 1.5f), paint);
+
+        return bitmap;
     }
 
     public void setRippleEnabled(boolean isRippleEnabled) {
