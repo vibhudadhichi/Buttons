@@ -37,7 +37,8 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     private ValueAnimator rippleAnimator;
 
     private Drawable rippleDrawable;
-    private Map<Integer, Bitmap> ripples;
+    private Map<Position, Bitmap> ripples;
+    private int rippleX, rippleY;
     private boolean isRippleEnabled = true;
 
     public Button(Context context) {
@@ -170,6 +171,11 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         super.onDraw(canvas);
 
         if (isRippleEnabled && progress > 0) {
+            if (rippleX == 0 && rippleY == 0) {
+                rippleX = canvas.getWidth() / 2;
+                rippleY = canvas.getHeight() / 2;
+            }
+
             Bitmap ripple = getRipple();
             if (ripple != null)
                 canvas.drawBitmap(ripple, 0, 0, paint);
@@ -178,8 +184,10 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
 
     @Nullable
     private Bitmap getRipple() {
-        if (ripples.containsKey((int) (progress * 100)))
-            return ripples.get((int) (progress * 100));
+        Position position = new Position(progress, rippleX, rippleY);
+
+        if (ripples.containsKey(position))
+            return ripples.get(position);
         else {
             if (rippleDrawable == null || getWidth() < 1 || getHeight() < 1)
                 return null;
@@ -200,9 +208,9 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
 
             rippleDrawable.draw(canvas);
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
-            canvas.drawCircle(canvas.getWidth() / 2, canvas.getHeight() / 2, progress * (getWidth() / 1.5f), paint);
+            canvas.drawCircle(rippleX, rippleY, progress * (getWidth() / 1.5f), paint);
 
-            ripples.put((int) (progress * 100), bitmap);
+            //TODO: add back 'ripples.put(position, bitmap);' once OOMs are fixed
             return bitmap;
         }
     }
@@ -223,6 +231,9 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
                 case MotionEvent.ACTION_DOWN:
                     if (rippleAnimator != null)
                         rippleAnimator.cancel();
+
+                    rippleX = (int) event.getX();
+                    rippleY = (int) event.getY();
 
                     rippleAnimator = ValueAnimator.ofFloat(0, 1).setDuration(2500);
                     rippleAnimator.setInterpolator(new DecelerateInterpolator());
@@ -263,5 +274,22 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         OUTLINE,
         ROUND,
         ROUND_OUTLINE
+    }
+
+    private class Position {
+
+        private float progress;
+        private int x, y;
+
+        private Position(float progress, int x, int y) {
+            this.progress = progress;
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return super.equals(obj) || (obj instanceof Position && ((Position) obj).progress == progress && ((Position) obj).x == x && ((Position) obj).y == y);
+        }
     }
 }
