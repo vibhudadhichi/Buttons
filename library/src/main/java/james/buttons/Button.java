@@ -1,22 +1,28 @@
 package james.buttons;
 
-import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v4.util.ArrayMap;
 import android.support.v7.widget.AppCompatButton;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+
+import java.util.Map;
 
 import james.buttons.utils.ColorUtils;
 
@@ -29,6 +35,10 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     private Type type;
     private Paint paint;
     private ValueAnimator rippleAnimator;
+
+    private Drawable rippleDrawable;
+    private Map<Integer, Bitmap> ripples;
+    private boolean isRippleEnabled = true;
 
     public Button(Context context) {
         super(context);
@@ -46,6 +56,8 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     }
 
     private void init(@Nullable AttributeSet attrs) {
+        ripples = new ArrayMap<>();
+
         if (attrs != null) {
             TypedArray array = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.Button, 0, 0);
 
@@ -73,7 +85,7 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(true);
-        paint.setAlpha(150);
+        paint.setAlpha(100);
 
         setBackgroundColor(color);
         setBackgroundType(type);
@@ -88,20 +100,33 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     public void setBackgroundType(Type type, boolean autoTextContrast) {
         this.type = type;
 
+        int resource = R.drawable.button;
+        Integer rippleResource = null;
+
         switch (type) {
             case SOLID:
-                setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button)));
+                resource = R.drawable.button;
                 break;
             case OUTLINE:
-                setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button_outline)));
+                resource = R.drawable.button_outline;
+                rippleResource = R.drawable.button;
                 break;
             case ROUND:
-                setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button_round)));
+                resource = R.drawable.button_round;
                 break;
             case ROUND_OUTLINE:
-                setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), R.drawable.button_outline_round)));
+                resource = R.drawable.button_outline_round;
+                rippleResource = R.drawable.button_round;
                 break;
         }
+
+        Drawable drawable = DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), resource));
+        if (rippleResource != null)
+            rippleDrawable = ContextCompat.getDrawable(getContext(), rippleResource);
+        else rippleDrawable = drawable;
+
+        setBackgroundDrawable(drawable);
+        ripples.clear();
 
         if (autoTextContrast)
             setBackgroundColor(color);
@@ -134,76 +159,101 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     @Override
     public void setTextColor(int color) {
         super.setTextColor(color);
-        if (rippleAnimator == null || !rippleAnimator.isRunning())
+        if (rippleAnimator == null || !rippleAnimator.isRunning()) {
             paint.setColor(color);
+            ripples.clear();
+        }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawCircle(canvas.getWidth() / 2, canvas.getHeight() / 2, progress * (canvas.getWidth() / 1.5f), paint);
+
+        if (isRippleEnabled && progress > 0) {
+            Bitmap ripple = getRipple();
+            if (ripple != null)
+                canvas.drawBitmap(ripple, 0, 0, paint);
+        }
+    }
+
+    @Nullable
+    private Bitmap getRipple() {
+        if (ripples.containsKey((int) (progress * 100)))
+            return ripples.get((int) (progress * 100));
+        else {
+            if (rippleDrawable == null || getWidth() < 1 || getHeight() < 1)
+                return null;
+
+            Bitmap bitmap;
+            try {
+                bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+            } catch (OutOfMemoryError e) {
+                return null;
+            }
+
+            Canvas canvas = new Canvas(bitmap);
+
+            Paint paint = new Paint();
+            paint.setAntiAlias(true);
+            paint.setColor(this.paint.getColor());
+            paint.setAlpha(255);
+
+            rippleDrawable.draw(canvas);
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
+            canvas.drawCircle(canvas.getWidth() / 2, canvas.getHeight() / 2, progress * (getWidth() / 1.5f), paint);
+
+            ripples.put((int) (progress * 100), bitmap);
+            return bitmap;
+        }
+    }
+
+    public void setRippleEnabled(boolean isRippleEnabled) {
+        this.isRippleEnabled = isRippleEnabled;
+        if (rippleAnimator != null && rippleAnimator.isRunning())
+            rippleAnimator.cancel();
+
+        progress = 0;
+        invalidate();
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                if (rippleAnimator != null)
-                    rippleAnimator.cancel();
+        if (isRippleEnabled) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    if (rippleAnimator != null)
+                        rippleAnimator.cancel();
 
-                rippleAnimator = ValueAnimator.ofFloat(0, 1);
-                rippleAnimator.setDuration(2500);
-                rippleAnimator.setInterpolator(new DecelerateInterpolator());
-                rippleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        progress = (float) animation.getAnimatedValue();
-                        paint.setAlpha(150);
-                        invalidate();
-                    }
-                });
-                rippleAnimator.start();
-                break;
-            case MotionEvent.ACTION_CANCEL:
-            case MotionEvent.ACTION_UP:
-                if (rippleAnimator != null)
-                    rippleAnimator.cancel();
+                    rippleAnimator = ValueAnimator.ofFloat(0, 1).setDuration(2500);
+                    rippleAnimator.setInterpolator(new DecelerateInterpolator());
+                    rippleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            progress = (float) animation.getAnimatedValue();
+                            paint.setAlpha(Math.min((int) (255 * animation.getAnimatedFraction()), 100));
+                            invalidate();
+                        }
+                    });
+                    rippleAnimator.start();
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_UP:
+                    if (rippleAnimator != null)
+                        rippleAnimator.cancel();
 
-                rippleAnimator = ValueAnimator.ofFloat(progress, 1);
-                rippleAnimator.setDuration(350);
-                rippleAnimator.setInterpolator(new AccelerateInterpolator());
-                rippleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        progress = (float) animation.getAnimatedValue();
-                        paint.setAlpha((int) (150 * (1 - animation.getAnimatedFraction())));
-                        invalidate();
-                    }
-                });
-                rippleAnimator.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        progress = 0;
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-
-                    }
-                });
-                rippleAnimator.start();
-
-                break;
+                    rippleAnimator = ValueAnimator.ofFloat(progress, 1).setDuration(350);
+                    rippleAnimator.setInterpolator(new AccelerateInterpolator());
+                    rippleAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                        @Override
+                        public void onAnimationUpdate(ValueAnimator animation) {
+                            progress = (float) animation.getAnimatedValue();
+                            paint.setAlpha((int) (100 * (1 - animation.getAnimatedFraction())));
+                            invalidate();
+                        }
+                    });
+                    rippleAnimator.start();
+                    break;
+            }
         }
         return false;
     }

@@ -15,14 +15,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
-        app:backgroundColor="@color/colorPrimary" />
+        app:backgroundColor="@color/colorAccent" />
 
     <james.buttons.Button
         android:id="@+id/outlineButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
-        app:backgroundColor="@color/colorPrimary"
+        app:backgroundColor="@color/colorAccent"
         app:backgroundType="outline" />
 
     <james.buttons.Button
@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
-        app:backgroundColor="@color/colorPrimary"
+        app:backgroundColor="@color/colorAccent"
         app:backgroundType="round" />
 
     <james.buttons.Button
@@ -38,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hi"
-        app:backgroundColor="@color/colorPrimary"
+        app:backgroundColor="@color/colorAccent"
         app:backgroundType="roundOutline" />
 
 </LinearLayout>
