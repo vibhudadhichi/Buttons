@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Buttons</string>
-    <string name="hi">Hi I really like pie.</string>
+    <string name="hi">Hi I really like pie</string>
+    <string name="pie">So you like Pie? I also like pie.</string>
 </resources>

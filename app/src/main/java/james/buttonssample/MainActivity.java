@@ -2,10 +2,12 @@ package james.buttonssample;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Toast;
 
 import james.buttons.Button;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Button button;
     private Button outlineButton;
@@ -21,5 +23,15 @@ public class MainActivity extends AppCompatActivity {
         outlineButton = (Button) findViewById(R.id.outlineButton);
         roundButton = (Button) findViewById(R.id.roundButton);
         roundOutlineButton = (Button) findViewById(R.id.roundOutlineButton);
+
+        button.setOnClickListener(this);
+        outlineButton.setOnClickListener(this);
+        roundButton.setOnClickListener(this);
+        roundOutlineButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        Toast.makeText(this, R.string.pie, Toast.LENGTH_SHORT).show();
     }
 }

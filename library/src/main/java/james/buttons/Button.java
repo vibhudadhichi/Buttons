@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -33,7 +32,6 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     private Paint paint;
     private ValueAnimator rippleAnimator;
 
-    private Drawable rippleDrawable;
     private int rippleX, rippleY;
     private boolean isRippleEnabled = true;
 
@@ -96,7 +94,6 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         this.type = type;
 
         int resource = R.drawable.button;
-        Integer rippleResource = null;
 
         switch (type) {
             case SOLID:
@@ -104,23 +101,16 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
                 break;
             case OUTLINE:
                 resource = R.drawable.button_outline;
-                rippleResource = R.drawable.button;
                 break;
             case ROUND:
                 resource = R.drawable.button_round;
                 break;
             case ROUND_OUTLINE:
                 resource = R.drawable.button_outline_round;
-                rippleResource = R.drawable.button_round;
                 break;
         }
 
-        Drawable drawable = DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), resource));
-        if (rippleResource != null)
-            rippleDrawable = DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), rippleResource));
-        else rippleDrawable = null;
-
-        setBackgroundDrawable(drawable);
+        setBackgroundDrawable(DrawableCompat.wrap(ContextCompat.getDrawable(getContext(), resource)));
 
         if (autoTextContrast)
             setBackgroundColor(color);
@@ -134,7 +124,8 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
     public void setBackgroundColor(@ColorInt int color, boolean autoTextContrast) {
         this.color = color;
 
-        DrawableCompat.setTint(getBackground(), color);
+        if (getBackground() != null)
+            DrawableCompat.setTint(getBackground(), color);
 
         if (autoTextContrast) {
             switch (type) {
@@ -193,8 +184,7 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         paint.setColor(this.paint.getColor());
         paint.setAlpha(255);
 
-        if (rippleDrawable != null) rippleDrawable.draw(canvas);
-        else getBackground().draw(canvas);
+        getBackground().draw(canvas);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
         canvas.drawCircle(rippleX, rippleY, progress * (getWidth() / 1.5f), paint);
 
@@ -260,22 +250,5 @@ public class Button extends AppCompatButton implements View.OnTouchListener {
         OUTLINE,
         ROUND,
         ROUND_OUTLINE
-    }
-
-    private class Position {
-
-        private float progress;
-        private int x, y;
-
-        private Position(float progress, int x, int y) {
-            this.progress = progress;
-            this.x = x;
-            this.y = y;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return super.equals(obj) || (obj instanceof Position && ((Position) obj).progress == progress && ((Position) obj).x == x && ((Position) obj).y == y);
-        }
     }
 }
