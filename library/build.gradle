@@ -1,5 +1,29 @@
 apply plugin: 'com.android.library'
 
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'buttons'
+
+    publishedGroupId = 'james.buttons'
+    libraryName = 'Buttons'
+    artifact = 'buttons'
+
+    libraryDescription = 'A library with a large amount of themable styled buttons.'
+
+    siteUrl = 'https://github.com/TheAndroidMaster/Buttons'
+    gitUrl = 'https://github.com/TheAndroidMaster/Buttons.git'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'TheAndroidMaster'
+    developerName = 'James Fenn'
+    developerEmail = '18jafenn90@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
@@ -8,11 +32,11 @@ android {
         minSdkVersion 16
         targetSdkVersion 25
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -29,3 +53,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.0'
     testCompile 'junit:junit:4.12'
 }
+
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
